@@ -1261,7 +1261,7 @@ let Multiline$1 = class Multiline extends LinkedList {
      * @returns {[number,Flatten.Segment]}
      */
     distanceTo(shape) {
-        if (shape instanceof Point) {
+        if (shape instanceof Flatten.Point) {
             const [dist, shortest_segment] = Flatten.Distance.shape2multiline(shape, this);
             return [dist, shortest_segment.reverse()];
         }
@@ -4353,7 +4353,7 @@ class Shape {
  * Class representing a point
  * @type {Point}
  */
-let Point$3 = class Point extends Shape {
+let Point$2 = class Point extends Shape {
     /**
      * Point may be constructed by two numbers, or by array of two numbers
      * @param {number} x - x-coordinate (float number)
@@ -4568,7 +4568,7 @@ let Point$3 = class Point extends Shape {
     }
 };
 
-Flatten.Point = Point$3;
+Flatten.Point = Point$2;
 /**
  * Function to create point equivalent to "new" constructor
  * @param args
@@ -8453,7 +8453,7 @@ Flatten.Polygon = Polygon$1;
 const polygon = (...args) => new Flatten.Polygon(...args);
 Flatten.polygon = polygon;
 
-const {Circle, Line, Point: Point$2, Vector, Utils} = Flatten;
+const {Circle, Line, Point: Point$1, Vector, Utils} = Flatten;
 /**
  * Class Inversion represent operator of inversion in circle
  * Inversion is a transformation of the Euclidean plane that maps generalized circles
@@ -8481,7 +8481,7 @@ class Inversion {
         const k2 = inversion_circle.r * inversion_circle.r;
         const len2 = v.dot(v);
         const reflected_point = Utils.EQ_0(len2) ?
-            new Point$2(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY) :
+            new Point$1(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY) :
             inversion_circle.pc.translate(v.multiply(k2 / len2));
         return reflected_point;
     }
@@ -8519,7 +8519,7 @@ class Inversion {
     }
 
     inverse(shape) {
-        if (shape instanceof Point$2) {
+        if (shape instanceof Point$1) {
             return Inversion.inversePoint(this.circle, shape);
         }
         else if (shape instanceof Circle) {
@@ -9194,7 +9194,7 @@ class Distance {
 
 Flatten.Distance = Distance;
 
-const {Multiline, Point: Point$1, Segment, Polygon} = Flatten;
+const {Multiline, Point, Segment, Polygon} = Flatten;
 
 // POINT (30 10)
 // MULTIPOINT (10 40, 40 30, 20 20, 30 10)
@@ -9207,7 +9207,7 @@ const {Multiline, Point: Point$1, Segment, Polygon} = Flatten;
 // GEOMETRYCOLLECTION (POINT (40 10), LINESTRING (10 10, 20 20, 10 40), POLYGON ((40 40, 20 45, 45 30, 40 40)))
 
 function parseSinglePoint(pointStr) {
-    return new Point$1(pointStr.split(' ').map(Number))
+    return new Point(pointStr.split(' ').map(Number))
 }
 
 function parseMultiPoint(multipointStr) {
@@ -9234,7 +9234,7 @@ function parseSinglePolygon(polygonStr) {
     let orientation;
     facesStr.forEach((facesStr, idx) => {
         let points = facesStr.split(', ').map(coordStr => {
-            return new Point$1(coordStr.split(' ').map(Number))
+            return new Point(coordStr.split(' ').map(Number))
         });
         const face = polygon.addFace(points);
         if (idx === 0) {
@@ -9393,7 +9393,7 @@ exports.OUTSIDE = OUTSIDE$1;
 exports.OVERLAP_OPPOSITE = OVERLAP_OPPOSITE$1;
 exports.OVERLAP_SAME = OVERLAP_SAME$1;
 exports.PlanarSet = PlanarSet;
-exports.Point = Point$3;
+exports.Point = Point$2;
 exports.Polygon = Polygon$1;
 exports.Ray = Ray;
 exports.Relations = Relations;
