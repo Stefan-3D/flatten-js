@@ -928,7 +928,7 @@ function intersectEdge2Edge(edge1, edge2) {
 function intersectEdge2Polygon(edge, polygon) {
     let ip = [];
 
-    if (polygon.isEmpty() || edge.shape.box.not_intersect(polygon.box)) {
+    if (polygon.isEmpty() || edge.shape.box.notIntersect(polygon.box)) {
         return ip;
     }
 
@@ -962,7 +962,7 @@ function intersectPolygon2Polygon(polygon1, polygon2) {
         return ip;
     }
 
-    if (polygon1.box.not_intersect(polygon2.box)) {
+    if (polygon1.box.notIntersect(polygon2.box)) {
         return ip;
     }
 
@@ -2705,7 +2705,7 @@ function ray_shoot(polygon, point) {
     let contains = undefined;
 
     // 1. Quick reject
-    // if (polygon.box.not_intersect(point.box)) {
+    // if (polygon.box.notIntersect(point.box)) {
     //     return Flatten.OUTSIDE;
     // }
 
@@ -2718,7 +2718,7 @@ function ray_shoot(polygon, point) {
         ray.box.xmax+Flatten.DP_TOL, ray.box.ymax+Flatten.DP_TOL
     );
 
-    if (polygon.box.not_intersect(searchBox)) {
+    if (polygon.box.notIntersect(searchBox)) {
         return Flatten.OUTSIDE;
     }
 
@@ -3358,17 +3358,17 @@ class IntervalBase {
         return this.clone();
     }
     // Default numeric/date comparison (lexicographic by low then high)
-    less_than(other_interval) {
+    lessThan(other_interval) {
         return this.low < other_interval.low ||
             (this.low === other_interval.low && this.high < other_interval.high);
     }
-    equal_to(other_interval) {
+    equalTo(other_interval) {
         return this.low === other_interval.low && this.high === other_interval.high;
     }
     intersect(other_interval) {
-        return !this.not_intersect(other_interval);
+        return !this.notIntersect(other_interval);
     }
-    not_intersect(other_interval) {
+    notIntersect(other_interval) {
         return (this.high < other_interval.low || other_interval.high < this.low);
     }
     merge(other_interval) {
@@ -3389,7 +3389,7 @@ class IntervalBase {
         return [this.low, this.high];
     }
     // Instance-level comparator so child classes can customize value comparison semantics
-    comparable_less_than(val1, val2) {
+    comparableLessThan(val1, val2) {
         return val1 < val2;
     }
 }
@@ -3458,35 +3458,35 @@ class Node {
         }
         return this.item.key;
     }
-    less_than(other_node) {
+    lessThan(other_node) {
         // Compare nodes by key only; values are stored in a bucket
         const a = this.requireKey();
         const b = other_node.requireKey();
-        return a.less_than(b);
+        return a.lessThan(b);
     }
     _value_equal(other_node) {
         // Deprecated in bucket mode; kept for backward compatibility if ever used
         // Compare first elements if exist
         const a = this.item.values[0];
         const b = other_node.item.values[0];
-        return a && b && a.equal_to ? a.equal_to(b) : a === b;
+        return a && b && a.equalTo ? a.equalTo(b) : a === b;
     }
-    equal_to(other_node) {
+    equalTo(other_node) {
         // Nodes are equal if keys are equal; values are kept in a bucket
         const a = this.requireKey();
         const b = other_node.requireKey();
-        return a.equal_to(b);
+        return a.equalTo(b);
     }
     intersect(other_node) {
         const a = this.requireKey();
         const b = other_node.requireKey();
         return a.intersect(b);
     }
-    copy_data(other_node) {
+    copyData(other_node) {
         this.item.key = other_node.item.key;
         this.item.values = other_node.item.values.slice();
     }
-    update_max() {
+    updateMax() {
         // use key (Interval) max property instead of key.high
         this.max = this.item.key ? this.item.key.max : undefined;
         if (this.right && this.right.max) {
@@ -3497,22 +3497,22 @@ class Node {
         }
     }
     // Other_node does not intersect any node of left subtree
-    not_intersect_left_subtree(search_node) {
+    notIntersectLeftSubtree(search_node) {
         if (!this.left)
             return true;
         const high = this.left.max ? this.left.max.high : this.left.item.key.high;
         const selfKey = this.requireKey();
         const searchKey = search_node.requireKey();
-        return selfKey.comparable_less_than(high, searchKey.low);
+        return selfKey.comparableLessThan(high, searchKey.low);
     }
     // Other_node does not intersect right subtree
-    not_intersect_right_subtree(search_node) {
+    notIntersectRightSubtree(search_node) {
         if (!this.right)
             return true;
         const low = this.right.max ? this.right.max.low : this.right.item.key.low;
         const selfKey = this.requireKey();
         const searchKey = search_node.requireKey();
-        return selfKey.comparable_less_than(searchKey.high, low);
+        return selfKey.comparableLessThan(searchKey.high, low);
     }
 }
 
@@ -3538,7 +3538,7 @@ class IntervalTree {
      */
     get size() {
         let count = 0;
-        this.tree_walk(this.root, (node) => count += node.item.values.length);
+        this.treeWalk(this.root, (node) => count += node.item.values.length);
         return count;
     }
     /**
@@ -3547,7 +3547,7 @@ class IntervalTree {
      */
     get keys() {
         const res = [];
-        this.tree_walk(this.root, (node) => res.push(node.item.key.output()));
+        this.treeWalk(this.root, (node) => res.push(node.item.key.output()));
         return res;
     }
     /**
@@ -3556,7 +3556,7 @@ class IntervalTree {
      */
     get values() {
         const res = [];
-        this.tree_walk(this.root, (node) => {
+        this.treeWalk(this.root, (node) => {
             for (const v of node.item.values)
                 res.push(v);
         });
@@ -3568,7 +3568,7 @@ class IntervalTree {
      */
     get items() {
         const res = [];
-        this.tree_walk(this.root, (node) => {
+        this.treeWalk(this.root, (node) => {
             const keyOut = node.item.key.output();
             for (const v of node.item.values) {
                 res.push({ key: keyOut, value: v });
@@ -3599,14 +3599,14 @@ class IntervalTree {
         if (key === undefined)
             return;
         // If node with the same key exists, append value to its bucket
-        const existing = this.tree_search(this.root, new Node(key));
+        const existing = this.treeSearch(this.root, new Node(key));
         if (existing) {
             existing.item.values.push(value);
             return existing;
         }
         const insert_node = new Node(key, value, this.nil_node, this.nil_node, null, RB_TREE_COLOR_RED);
-        this.tree_insert(insert_node);
-        this.recalc_max(insert_node);
+        this.treeInsert(insert_node);
+        this.recalcMax(insert_node);
         return insert_node;
     }
     /**
@@ -3616,14 +3616,14 @@ class IntervalTree {
      * @returns true if item {key, value} exist in the tree, false otherwise
      */
     exist(key, value = key) {
-        const node = this.tree_search(this.root, new Node(key));
+        const node = this.treeSearch(this.root, new Node(key));
         if (!node)
             return false;
         // If value is omitted (or equals key by default), treat as key existence
         if (arguments.length < 2 || value === key)
             return true;
         // Check if value exists in the bucket
-        return node.item.values.some((v) => (v && v.equal_to ? v.equal_to(value) : v === value));
+        return node.item.values.some((v) => (v && v.equalTo ? v.equalTo(value) : v === value));
     }
     /**
      * Remove entry {key, value} from the tree
@@ -3632,21 +3632,21 @@ class IntervalTree {
      * @returns deleted node or undefined if not found
      */
     remove(key, value = key) {
-        const node = this.tree_search(this.root, new Node(key));
+        const node = this.treeSearch(this.root, new Node(key));
         if (!node)
             return undefined;
         // If value omitted, remove entire node
         if (arguments.length < 2) {
-            this.tree_delete(node);
+            this.treeDelete(node);
             return node;
         }
         // Remove one matching value from bucket
-        const idx = node.item.values.findIndex((v) => (v && v.equal_to ? v.equal_to(value) : v === value));
+        const idx = node.item.values.findIndex((v) => (v && v.equalTo ? v.equalTo(value) : v === value));
         if (idx >= 0) {
             node.item.values.splice(idx, 1);
             // If bucket is now empty, remove node from tree
             if (node.item.values.length === 0) {
-                this.tree_delete(node);
+                this.treeDelete(node);
             }
             return node;
         }
@@ -3655,7 +3655,7 @@ class IntervalTree {
     search(interval, outputMapperFn = (value, key) => value === key ? key.output() : value) {
         const search_node = new Node(interval);
         const resp_nodes = [];
-        this.tree_search_interval(this.root, search_node, resp_nodes);
+        this.treeSearchInterval(this.root, search_node, resp_nodes);
         const res = [];
         for (const node of resp_nodes) {
             for (const v of node.item.values) {
@@ -3669,9 +3669,9 @@ class IntervalTree {
      * @param interval - search interval or tuple [low, high]
      * @returns {boolean}
      */
-    intersect_any(interval) {
+    intersectAny(interval) {
         const search_node = new Node(interval);
-        return this.tree_find_any_interval(this.root, search_node);
+        return this.treeFindAnyInterval(this.root, search_node);
     }
     /**
      * Tree visitor. For each node implement a callback function.
@@ -3679,7 +3679,7 @@ class IntervalTree {
      * @param visitor - function to be called for each tree item
      */
     forEach(visitor) {
-        this.tree_walk(this.root, (node) => {
+        this.treeWalk(this.root, (node) => {
             for (const v of node.item.values)
                 visitor(node.item.key, v);
         });
@@ -3690,7 +3690,7 @@ class IntervalTree {
      */
     map(callback) {
         const tree = new IntervalTree();
-        this.tree_walk(this.root, (node) => {
+        this.treeWalk(this.root, (node) => {
             for (const v of node.item.values) {
                 tree.insert(node.item.key, callback(v, node.item.key));
             }
@@ -3700,26 +3700,26 @@ class IntervalTree {
     *iterate(interval, outputMapperFn = (value, key) => value === key ? key.output() : value) {
         let node = null;
         if (interval) {
-            node = this.tree_search_nearest_forward(this.root, new Node(interval));
+            node = this.treeSearchNearestForward(this.root, new Node(interval));
         }
         else if (this.root) {
-            node = this.local_minimum(this.root);
+            node = this.localMinimum(this.root);
         }
         while (node) {
             for (const v of node.item.values) {
                 yield outputMapperFn(v, node.item.key);
             }
-            node = this.tree_successor(node);
+            node = this.treeSuccessor(node);
         }
     }
     /**
      * Recalculate max property upward from given node to root
      * @param node - starting node
      */
-    recalc_max(node) {
+    recalcMax(node) {
         let node_current = node;
         while (node_current.parent != null) {
-            node_current.parent.update_max();
+            node_current.parent.updateMax();
             node_current = node_current.parent;
         }
     }
@@ -3727,7 +3727,7 @@ class IntervalTree {
      * Insert node into tree and rebalance
      * @param insert_node - node to insert
      */
-    tree_insert(insert_node) {
+    treeInsert(insert_node) {
         let current_node = this.root;
         let parent_node = null;
         if (this.root == null || this.root === this.nil_node) {
@@ -3736,7 +3736,7 @@ class IntervalTree {
         else {
             while (current_node !== this.nil_node) {
                 parent_node = current_node;
-                if (insert_node.less_than(current_node)) {
+                if (insert_node.lessThan(current_node)) {
                     current_node = current_node.left;
                 }
                 else {
@@ -3744,20 +3744,20 @@ class IntervalTree {
                 }
             }
             insert_node.parent = parent_node;
-            if (insert_node.less_than(parent_node)) {
+            if (insert_node.lessThan(parent_node)) {
                 parent_node.left = insert_node;
             }
             else {
                 parent_node.right = insert_node;
             }
         }
-        this.insert_fixup(insert_node);
+        this.insertFixup(insert_node);
     }
     /**
      * Restore red-black tree properties after insertion
      * @param insert_node - inserted node
      */
-    insert_fixup(insert_node) {
+    insertFixup(insert_node) {
         let current_node;
         let uncle_node;
         current_node = insert_node;
@@ -3773,11 +3773,11 @@ class IntervalTree {
                 else {
                     if (current_node === current_node.parent.right) {
                         current_node = current_node.parent;
-                        this.rotate_left(current_node);
+                        this.rotateLeft(current_node);
                     }
                     current_node.parent.color = RB_TREE_COLOR_BLACK;
                     current_node.parent.parent.color = RB_TREE_COLOR_RED;
-                    this.rotate_right(current_node.parent.parent);
+                    this.rotateRight(current_node.parent.parent);
                 }
             }
             else {
@@ -3791,11 +3791,11 @@ class IntervalTree {
                 else {
                     if (current_node === current_node.parent.left) {
                         current_node = current_node.parent;
-                        this.rotate_right(current_node);
+                        this.rotateRight(current_node);
                     }
                     current_node.parent.color = RB_TREE_COLOR_BLACK;
                     current_node.parent.parent.color = RB_TREE_COLOR_RED;
-                    this.rotate_left(current_node.parent.parent);
+                    this.rotateLeft(current_node.parent.parent);
                 }
             }
         }
@@ -3805,14 +3805,14 @@ class IntervalTree {
      * Delete node from tree and rebalance
      * @param delete_node - node to delete
      */
-    tree_delete(delete_node) {
+    treeDelete(delete_node) {
         let cut_node;
         let fix_node;
         if (delete_node.left === this.nil_node || delete_node.right === this.nil_node) {
             cut_node = delete_node;
         }
         else {
-            cut_node = this.tree_successor(delete_node);
+            cut_node = this.treeSuccessor(delete_node);
         }
         if (cut_node.left !== this.nil_node) {
             fix_node = cut_node.left;
@@ -3831,23 +3831,23 @@ class IntervalTree {
             else {
                 cut_node.parent.right = fix_node;
             }
-            cut_node.parent.update_max();
+            cut_node.parent.updateMax();
         }
-        this.recalc_max(fix_node);
+        this.recalcMax(fix_node);
         if (cut_node !== delete_node) {
-            delete_node.copy_data(cut_node);
-            delete_node.update_max();
-            this.recalc_max(delete_node);
+            delete_node.copyData(cut_node);
+            delete_node.updateMax();
+            this.recalcMax(delete_node);
         }
         if (cut_node.color === RB_TREE_COLOR_BLACK) {
-            this.delete_fixup(fix_node);
+            this.deleteFixup(fix_node);
         }
     }
     /**
      * Restore red-black tree properties after deletion
      * @param fix_node - node to fix from
      */
-    delete_fixup(fix_node) {
+    deleteFixup(fix_node) {
         let current_node = fix_node;
         let brother_node;
         while (current_node !== this.root &&
@@ -3858,7 +3858,7 @@ class IntervalTree {
                 if (brother_node.color === RB_TREE_COLOR_RED) {
                     brother_node.color = RB_TREE_COLOR_BLACK;
                     current_node.parent.color = RB_TREE_COLOR_RED;
-                    this.rotate_left(current_node.parent);
+                    this.rotateLeft(current_node.parent);
                     brother_node = current_node.parent.right;
                 }
                 if (brother_node.left.color === RB_TREE_COLOR_BLACK &&
@@ -3870,13 +3870,13 @@ class IntervalTree {
                     if (brother_node.right.color === RB_TREE_COLOR_BLACK) {
                         brother_node.color = RB_TREE_COLOR_RED;
                         brother_node.left.color = RB_TREE_COLOR_BLACK;
-                        this.rotate_right(brother_node);
+                        this.rotateRight(brother_node);
                         brother_node = current_node.parent.right;
                     }
                     brother_node.color = current_node.parent.color;
                     current_node.parent.color = RB_TREE_COLOR_BLACK;
                     brother_node.right.color = RB_TREE_COLOR_BLACK;
-                    this.rotate_left(current_node.parent);
+                    this.rotateLeft(current_node.parent);
                     current_node = this.root;
                 }
             }
@@ -3885,7 +3885,7 @@ class IntervalTree {
                 if (brother_node.color === RB_TREE_COLOR_RED) {
                     brother_node.color = RB_TREE_COLOR_BLACK;
                     current_node.parent.color = RB_TREE_COLOR_RED;
-                    this.rotate_right(current_node.parent);
+                    this.rotateRight(current_node.parent);
                     brother_node = current_node.parent.left;
                 }
                 if (brother_node.left.color === RB_TREE_COLOR_BLACK &&
@@ -3897,13 +3897,13 @@ class IntervalTree {
                     if (brother_node.left.color === RB_TREE_COLOR_BLACK) {
                         brother_node.color = RB_TREE_COLOR_RED;
                         brother_node.right.color = RB_TREE_COLOR_BLACK;
-                        this.rotate_left(brother_node);
+                        this.rotateLeft(brother_node);
                         brother_node = current_node.parent.left;
                     }
                     brother_node.color = current_node.parent.color;
                     current_node.parent.color = RB_TREE_COLOR_BLACK;
                     brother_node.left.color = RB_TREE_COLOR_BLACK;
-                    this.rotate_right(current_node.parent);
+                    this.rotateRight(current_node.parent);
                     current_node = this.root;
                 }
             }
@@ -3916,17 +3916,17 @@ class IntervalTree {
      * @param search_node - node to search for
      * @returns found node or undefined
      */
-    tree_search(node, search_node) {
+    treeSearch(node, search_node) {
         if (node == null || node === this.nil_node)
             return undefined;
-        if (search_node.equal_to(node)) {
+        if (search_node.equalTo(node)) {
             return node;
         }
-        if (search_node.less_than(node)) {
-            return this.tree_search(node.left, search_node);
+        if (search_node.lessThan(node)) {
+            return this.treeSearch(node.left, search_node);
         }
         else {
-            return this.tree_search(node.right, search_node);
+            return this.treeSearch(node.right, search_node);
         }
     }
     /**
@@ -3935,11 +3935,11 @@ class IntervalTree {
      * @param search_node - search interval as node
      * @returns nearest forward node or null
      */
-    tree_search_nearest_forward(node, search_node) {
+    treeSearchNearestForward(node, search_node) {
         let best = null;
         let curr = node;
         while (curr && curr !== this.nil_node) {
-            if (curr.less_than(search_node)) {
+            if (curr.lessThan(search_node)) {
                 if (curr.intersect(search_node)) {
                     best = curr;
                     curr = curr.left;
@@ -3949,7 +3949,7 @@ class IntervalTree {
                 }
             }
             else {
-                if (!best || curr.less_than(best))
+                if (!best || curr.lessThan(best))
                     best = curr;
                 curr = curr.left;
             }
@@ -3962,16 +3962,16 @@ class IntervalTree {
      * @param search_node - search interval as node
      * @param res - result array to collect found nodes
      */
-    tree_search_interval(node, search_node, res) {
+    treeSearchInterval(node, search_node, res) {
         if (node != null && node !== this.nil_node) {
-            if (node.left !== this.nil_node && !node.not_intersect_left_subtree(search_node)) {
-                this.tree_search_interval(node.left, search_node, res);
+            if (node.left !== this.nil_node && !node.notIntersectLeftSubtree(search_node)) {
+                this.treeSearchInterval(node.left, search_node, res);
             }
             if (node.intersect(search_node)) {
                 res.push(node);
             }
-            if (node.right !== this.nil_node && !node.not_intersect_right_subtree(search_node)) {
-                this.tree_search_interval(node.right, search_node, res);
+            if (node.right !== this.nil_node && !node.notIntersectRightSubtree(search_node)) {
+                this.treeSearchInterval(node.right, search_node, res);
             }
         }
     }
@@ -3981,17 +3981,17 @@ class IntervalTree {
      * @param search_node - search interval as node
      * @returns true if intersection found
      */
-    tree_find_any_interval(node, search_node) {
+    treeFindAnyInterval(node, search_node) {
         let found = false;
         if (node != null && node !== this.nil_node) {
-            if (node.left !== this.nil_node && !node.not_intersect_left_subtree(search_node)) {
-                found = this.tree_find_any_interval(node.left, search_node);
+            if (node.left !== this.nil_node && !node.notIntersectLeftSubtree(search_node)) {
+                found = this.treeFindAnyInterval(node.left, search_node);
             }
             if (!found) {
                 found = node.intersect(search_node);
             }
-            if (!found && node.right !== this.nil_node && !node.not_intersect_right_subtree(search_node)) {
-                found = this.tree_find_any_interval(node.right, search_node);
+            if (!found && node.right !== this.nil_node && !node.notIntersectRightSubtree(search_node)) {
+                found = this.treeFindAnyInterval(node.right, search_node);
             }
         }
         return found;
@@ -4001,7 +4001,7 @@ class IntervalTree {
      * @param node - root of subtree
      * @returns node with minimum key
      */
-    local_minimum(node) {
+    localMinimum(node) {
         let node_min = node;
         while (node_min.left != null && node_min.left !== this.nil_node) {
             node_min = node_min.left;
@@ -4013,7 +4013,7 @@ class IntervalTree {
      * @param node - root of subtree
      * @returns node with maximum key
      */
-    local_maximum(node) {
+    localMaximum(node) {
         let node_max = node;
         while (node_max.right != null && node_max.right !== this.nil_node) {
             node_max = node_max.right;
@@ -4025,12 +4025,12 @@ class IntervalTree {
      * @param node - current node
      * @returns successor node or null
      */
-    tree_successor(node) {
+    treeSuccessor(node) {
         let node_successor;
         let current_node;
         let parent_node;
         if (node.right !== this.nil_node) {
-            node_successor = this.local_minimum(node.right);
+            node_successor = this.localMinimum(node.right);
         }
         else {
             current_node = node;
@@ -4047,7 +4047,7 @@ class IntervalTree {
      * Left rotation around node x
      * @param x - node to rotate
      */
-    rotate_left(x) {
+    rotateLeft(x) {
         const y = x.right;
         x.right = y.left;
         if (y.left !== this.nil_node) {
@@ -4068,17 +4068,17 @@ class IntervalTree {
         y.left = x;
         x.parent = y;
         if (x !== null && x !== this.nil_node) {
-            x.update_max();
+            x.updateMax();
         }
         if (y != null && y !== this.nil_node) {
-            y.update_max();
+            y.updateMax();
         }
     }
     /**
      * Right rotation around node y
      * @param y - node to rotate
      */
-    rotate_right(y) {
+    rotateRight(y) {
         const x = y.left;
         y.left = x.right;
         if (x.right !== this.nil_node) {
@@ -4099,10 +4099,10 @@ class IntervalTree {
         x.right = y;
         y.parent = x;
         if (y !== null && y !== this.nil_node) {
-            y.update_max();
+            y.updateMax();
         }
         if (x != null && x !== this.nil_node) {
-            x.update_max();
+            x.updateMax();
         }
     }
     /**
@@ -4111,11 +4111,11 @@ class IntervalTree {
      * @param node - starting node for traversal (typically root)
      * @param action - callback function to be executed for each node
      */
-    tree_walk(node, action) {
+    treeWalk(node, action) {
         if (node != null && node !== this.nil_node) {
-            this.tree_walk(node.left, action);
+            this.treeWalk(node.left, action);
             action(node);
-            this.tree_walk(node.right, action);
+            this.treeWalk(node.right, action);
         }
     }
     /**
@@ -4124,7 +4124,7 @@ class IntervalTree {
      */
     testRedBlackProperty() {
         let res = true;
-        this.tree_walk(this.root, function (node) {
+        this.treeWalk(this.root, function (node) {
             if (node.color === RB_TREE_COLOR_RED) {
                 if (!(node.left.color === RB_TREE_COLOR_BLACK &&
                     node.right.color === RB_TREE_COLOR_BLACK)) {
@@ -6431,7 +6431,7 @@ class Box extends Shape {
     get max() {
         return this.clone();
     }
-    
+
     /**
      * Return center of the box
      * @returns {Point}
@@ -6455,7 +6455,7 @@ class Box extends Shape {
     get height() {
         return Math.abs(this.ymax - this.ymin);
     }
-    
+
     /**
      * Return property box like all other shapes
      * @returns {Box}
@@ -6469,7 +6469,7 @@ class Box extends Shape {
      * @param {Box} other_box - other box to test
      * @returns {boolean}
      */
-    not_intersect(other_box) {
+    notIntersect(other_box) {
         return (
             this.xmax < other_box.xmin ||
             this.xmin > other_box.xmax ||
@@ -6484,7 +6484,7 @@ class Box extends Shape {
      * @returns {boolean}
      */
     intersect(other_box) {
-        return !this.not_intersect(other_box);
+        return !this.notIntersect(other_box);
     }
 
     /**
@@ -6506,7 +6506,7 @@ class Box extends Shape {
      * @param {Box} other_box - other box
      * @returns {boolean} - true if this box less than other box, false otherwise
      */
-    less_than(other_box) {
+    lessThan(other_box) {
         if (this.low.lessThan(other_box.low))
             return true;
         if (this.low.equalTo(other_box.low) && this.high.lessThan(other_box.high))
@@ -6519,7 +6519,7 @@ class Box extends Shape {
      * @param {Box} other_box - query box
      * @returns {boolean}
      */
-    equal_to(other_box) {
+    equalTo(other_box) {
         return (this.low.equalTo(other_box.low) && this.high.equalTo(other_box.high));
     }
 
@@ -6527,7 +6527,7 @@ class Box extends Shape {
         return this.clone();
     }
 
-    comparable_less_than(pt1, pt2) {
+    comparableLessThan(pt1, pt2) {
         return pt1.lessThan(pt2);
     }
 

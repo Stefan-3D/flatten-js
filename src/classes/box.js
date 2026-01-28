@@ -77,7 +77,7 @@ export class Box extends Shape {
     get max() {
         return this.clone();
     }
-    
+
     /**
      * Return center of the box
      * @returns {Point}
@@ -101,7 +101,7 @@ export class Box extends Shape {
     get height() {
         return Math.abs(this.ymax - this.ymin);
     }
-    
+
     /**
      * Return property box like all other shapes
      * @returns {Box}
@@ -115,7 +115,7 @@ export class Box extends Shape {
      * @param {Box} other_box - other box to test
      * @returns {boolean}
      */
-    not_intersect(other_box) {
+    notIntersect(other_box) {
         return (
             this.xmax < other_box.xmin ||
             this.xmin > other_box.xmax ||
@@ -130,7 +130,7 @@ export class Box extends Shape {
      * @returns {boolean}
      */
     intersect(other_box) {
-        return !this.not_intersect(other_box);
+        return !this.notIntersect(other_box);
     }
 
     /**
@@ -152,7 +152,7 @@ export class Box extends Shape {
      * @param {Box} other_box - other box
      * @returns {boolean} - true if this box less than other box, false otherwise
      */
-    less_than(other_box) {
+    lessThan(other_box) {
         if (this.low.lessThan(other_box.low))
             return true;
         if (this.low.equalTo(other_box.low) && this.high.lessThan(other_box.high))
@@ -165,7 +165,7 @@ export class Box extends Shape {
      * @param {Box} other_box - query box
      * @returns {boolean}
      */
-    equal_to(other_box) {
+    equalTo(other_box) {
         return (this.low.equalTo(other_box.low) && this.high.equalTo(other_box.high));
     }
 
@@ -173,7 +173,7 @@ export class Box extends Shape {
         return this.clone();
     }
 
-    comparable_less_than(pt1, pt2) {
+    comparableLessThan(pt1, pt2) {
         return pt1.lessThan(pt2);
     }
 

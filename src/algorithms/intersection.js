@@ -496,7 +496,7 @@ export function intersectEdge2Edge(edge1, edge2) {
 export function intersectEdge2Polygon(edge, polygon) {
     let ip = [];
 
-    if (polygon.isEmpty() || edge.shape.box.not_intersect(polygon.box)) {
+    if (polygon.isEmpty() || edge.shape.box.notIntersect(polygon.box)) {
         return ip;
     }
 
@@ -530,7 +530,7 @@ export function intersectPolygon2Polygon(polygon1, polygon2) {
         return ip;
     }
 
-    if (polygon1.box.not_intersect(polygon2.box)) {
+    if (polygon1.box.notIntersect(polygon2.box)) {
         return ip;
     }
 

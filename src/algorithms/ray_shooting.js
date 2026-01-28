@@ -15,7 +15,7 @@ export function ray_shoot(polygon, point) {
     let contains = undefined;
 
     // 1. Quick reject
-    // if (polygon.box.not_intersect(point.box)) {
+    // if (polygon.box.notIntersect(point.box)) {
     //     return Flatten.OUTSIDE;
     // }
 
@@ -28,7 +28,7 @@ export function ray_shoot(polygon, point) {
         ray.box.xmax+Flatten.DP_TOL, ray.box.ymax+Flatten.DP_TOL
     );
 
-    if (polygon.box.not_intersect(searchBox)) {
+    if (polygon.box.notIntersect(searchBox)) {
         return Flatten.OUTSIDE;
     }
 

@@ -79,6 +79,6 @@
     "rollup": "^3.25.1"
   },
   "dependencies": {
-    "@flatten-js/interval-tree": "^2.0.0"
+    "@flatten-js/interval-tree": "git+https://git@github.com/Stefan-3D/flatten-interval-tree.git"
   }
 }
